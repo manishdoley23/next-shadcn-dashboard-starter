@@ -9,6 +9,11 @@ const baseConfig: NextConfig = {
         protocol: 'https',
         hostname: 'api.slingacademy.com',
         port: ''
+      },
+      {
+        protocol: 'https',
+        hostname: 'kyh-app.s3.eu-north-1.amazonaws.com',
+        port: ''
       }
     ]
   },

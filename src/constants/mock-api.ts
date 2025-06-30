@@ -155,3 +155,63 @@ export const fakeProducts = {
 
 // Initialize sample products
 fakeProducts.initialize();
+
+// Define the shape of User data
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+  accountType: 'Homeowner' | 'Builder';
+  createdAt: string;
+};
+
+// Mock user data store
+export const fakeUsers = {
+  records: [] as User[],
+
+  initialize() {
+    for (let i = 0; i < 100; i++) {
+      this.records.push({
+        id: faker.string.uuid(),
+        name: faker.person.fullName(),
+        email: faker.internet.email(),
+        avatar: faker.image.avatar(),
+        accountType: faker.helpers.arrayElement(['Homeowner', 'Builder']),
+        createdAt: faker.date.past().toISOString()
+      });
+    }
+  },
+
+  async getUsers({
+    page = 1,
+    limit = 10,
+    search
+  }: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }) {
+    await delay(500);
+    let users = [...this.records];
+
+    if (search) {
+      users = matchSorter(users, search, {
+        keys: ['name', 'email', 'accountType']
+      });
+    }
+
+    const totalUsers = users.length;
+    const offset = (page - 1) * limit;
+    const paginatedUsers = users.slice(offset, offset + limit);
+
+    return {
+      total_users: totalUsers,
+      offset,
+      limit,
+      users: paginatedUsers
+    };
+  }
+};
+
+fakeUsers.initialize();

@@ -1,78 +1,90 @@
 'use client';
 import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
-import { Product } from '@/constants/data';
-import { Column, ColumnDef } from '@tanstack/react-table';
-import { CheckCircle2, Text, XCircle } from 'lucide-react';
+import { Item } from '@/types/item';
+import { ColumnDef } from '@tanstack/react-table';
 import Image from 'next/image';
 import { CellAction } from './cell-action';
-import { CATEGORY_OPTIONS } from './options';
 
-export const columns: ColumnDef<Product>[] = [
+export const columns: ColumnDef<Item>[] = [
   {
-    accessorKey: 'photo_url',
-    header: 'IMAGE',
+    accessorKey: 'itemImage',
+    header: 'Image',
     cell: ({ row }) => {
+      const itemImage = row.getValue('itemImage') as string[] | undefined;
+      const imageUrl = itemImage?.[0] || '/file.svg'; // Using a valid placeholder
       return (
-        <div className='relative aspect-square'>
+        <div className='relative flex h-16 w-16 items-center'>
           <Image
-            src={row.getValue('photo_url')}
-            alt={row.getValue('name')}
+            src={imageUrl}
+            alt={row.original.itemName}
             fill
-            className='rounded-lg'
+            sizes='(max-width: 64px) 100vw, 64px'
+            className='rounded-md object-cover'
           />
         </div>
       );
-    }
+    },
+    enableSorting: false,
+    enableHiding: false
   },
   {
-    id: 'name',
-    accessorKey: 'name',
-    header: ({ column }: { column: Column<Product, unknown> }) => (
+    accessorKey: 'itemName',
+    header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Name' />
     ),
-    cell: ({ cell }) => <div>{cell.getValue<Product['name']>()}</div>,
-    meta: {
-      label: 'Name',
-      placeholder: 'Search products...',
-      variant: 'text',
-      icon: Text
-    },
-    enableColumnFilter: true
+    cell: ({ row }) => <div>{row.getValue('itemName')}</div>
   },
   {
+    accessorFn: (row) => row.category.name,
     id: 'category',
-    accessorKey: 'category',
-    header: ({ column }: { column: Column<Product, unknown> }) => (
+    header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Category' />
     ),
     cell: ({ cell }) => {
-      const status = cell.getValue<Product['category']>();
-      const Icon = status === 'active' ? CheckCircle2 : XCircle;
-
       return (
         <Badge variant='outline' className='capitalize'>
-          <Icon />
-          {status}
+          {cell.getValue<string>()}
         </Badge>
       );
-    },
-    enableColumnFilter: true,
-    meta: {
-      label: 'categories',
-      variant: 'multiSelect',
-      options: CATEGORY_OPTIONS
     }
   },
   {
-    accessorKey: 'price',
-    header: 'PRICE'
+    accessorFn: (row) => row.brand.name,
+    id: 'brand',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Brand' />
+    ),
+    cell: ({ cell }) => <div>{cell.getValue<string>()}</div>
   },
   {
-    accessorKey: 'description',
-    header: 'DESCRIPTION'
+    accessorFn: (row) => row.room.name,
+    id: 'room',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Room' />
+    ),
+    cell: ({ cell }) => <div>{cell.getValue<string>()}</div>
   },
-
+  {
+    accessorKey: 'warrantyStatus',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Warranty' />
+    ),
+    cell: ({ row }) => {
+      const status = row.getValue('warrantyStatus') as Item['warrantyStatus'];
+      const variant: 'outline' | 'secondary' | 'destructive' =
+        status === 'Active'
+          ? 'outline'
+          : status === 'Expired'
+            ? 'destructive'
+            : 'secondary';
+      return (
+        <Badge variant={variant} className='capitalize'>
+          {status}
+        </Badge>
+      );
+    }
+  },
   {
     id: 'actions',
     cell: ({ row }) => <CellAction data={row.original} />

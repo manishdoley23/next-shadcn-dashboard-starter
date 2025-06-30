@@ -1,34 +1,27 @@
-import { Product } from '@/constants/data';
-import { fakeProducts } from '@/constants/mock-api';
-import { searchParamsCache } from '@/lib/searchparams';
+import { getItems } from '@/lib/actions/items';
+import { SearchParams } from 'nuqs/server';
 import { ProductTable } from './product-tables';
 import { columns } from './product-tables/columns';
 
-type ProductListingPage = {};
+type ProductListingPageProps = {
+  searchParams: SearchParams;
+};
 
-export default async function ProductListingPage({}: ProductListingPage) {
-  // Showcasing the use of search params cache in nested RSCs
-  const page = searchParamsCache.get('page');
-  const search = searchParamsCache.get('name');
-  const pageLimit = searchParamsCache.get('perPage');
-  const categories = searchParamsCache.get('category');
+export default async function ProductListingPage({
+  searchParams
+}: ProductListingPageProps) {
+  const urlSearchParams = new URLSearchParams();
+  Object.entries(searchParams).forEach(([key, value]) => {
+    if (value) {
+      if (Array.isArray(value)) {
+        value.forEach((v) => urlSearchParams.append(key, v));
+      } else {
+        urlSearchParams.append(key, value as string);
+      }
+    }
+  });
 
-  const filters = {
-    page,
-    limit: pageLimit,
-    ...(search && { search }),
-    ...(categories && { categories: categories })
-  };
+  const { items, total } = await getItems(urlSearchParams);
 
-  const data = await fakeProducts.getProducts(filters);
-  const totalProducts = data.total_products;
-  const products: Product[] = data.products;
-
-  return (
-    <ProductTable
-      data={products}
-      totalItems={totalProducts}
-      columns={columns}
-    />
-  );
+  return <ProductTable columns={columns} data={items} totalItems={total} />;
 }
