@@ -4,7 +4,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@import './theme.css';
+/* @import './theme.css'; */
 
 :root {
   --radius: 0.625rem;
